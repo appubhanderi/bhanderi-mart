@@ -1,38 +1,141 @@
-.App {
+/* Header_________________ */
+
+.Header,
+.Footer {
+  box-shadow: 0px 0px 5px 2px;
+  background-color: #9adf2d !important;
+}
+
+
+/* Footer_________________ */
+
+.Header_btn,
+.Footer_btn {
+  background-color: transparent !important;
+  border: 1px solid black !important;
+}
+
+/* HomePages_________________ */
+
+.carousel-caption {
+  right: 30% !important;
+  bottom: 20% !important;
+  left: 0% !important;
+}
+
+.carousel-indicators [data-bs-target] {
+  display: none;
+}
+
+.CarouselHome h4 {
+  font-family: "Kalam", cursive;
+  font-weight: 700;
+  font-style: normal;
+  overflow-y: hidden;
+}
+
+/* Home AboutUs_____________*/
+
+
+.About h4,
+.About h6,
+.Clients h4,
+.OurBlog h4,
+.ContactUs h3,
+.ContactUs h2 {
+  font-family: "Kalam", cursive;
+  font-weight: 700;
+  font-style: normal;
+  color: #7fd02c;
+}
+
+
+/* Home Clients____________*/
+
+.Clients {
+  background-image: url(./image/bg-image-5.jpg);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding: 50px 0px;
+}
+
+.ClientsCarousel {
   text-align: center;
+  box-shadow: 0 0 18px 0 rgba(0, 0, 0, 0.13);
+  border-radius: 10px;
+  background-color: white;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.slick-next:before,
+.slick-prev:before {
+  color: black !important;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+.Quote {
+  font-size: 30px;
+  color: #7fd02c;
+}
+
+.client p {
+  font-family: "Kalam", cursive;
+  color: #7fd02c;
+}
+
+.ClientsCarousel img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+}
+
+
+/* Contact____________*/
+
+.ContactWhatsapp {
+  position: fixed;
+  bottom: 1%;
+  font-size: 50px;
+  color: #25d366;
+}
+
+
+
+
+
+
+
+
+
+
+
+@media screen and (max-width: 768px) {
+  .carousel-caption {
+    right: 30% !important;
+    bottom: 5% !important;
   }
+
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+@media screen and (max-width: 480px) {
+  .carousel-caption {
+    right: 30% !important;
+    bottom: 0% !important;
+    left: 0% !important;
   }
-  to {
-    transform: rotate(360deg);
+
+  .CarouselHome h4 {
+
+    font-size: 15px !important;
+  }
+
+  .CarouselHome h1 {
+
+    font-size: 23px !important;
+  }
+
+  .CarouselHome h3 {
+
+    font-size: 15px !important;
   }
 }
