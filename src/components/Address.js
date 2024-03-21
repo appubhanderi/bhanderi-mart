@@ -7,62 +7,13 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Link } from 'react-router-dom';
 import Layout from './Layout';
+import firebaseApp from './SetupFirebase';
 
 
 export default function Address() {
 
     const [show, setShow] = useState(false);
-    const [data, setData] = useState([]);
-    const [address, setAddressData] = useState([]);
 
-
-    const [HouseNo, setHouseNo] = useState('');
-    const [Apartment, setApartment] = useState('');
-    const [Street, setStreet] = useState('');
-    const [Landmark, setLandmark] = useState('');
-    const [Area, setArea] = useState('');
-    const [City, setCity] = useState('');
-    const [PinCode, setPinCode] = useState('');
-
-
-    useEffect(() => {
-
-        let regData = JSON.parse(localStorage.getItem('BhanderiMart'))
-        if (localStorage.getItem('BhanderiMart')) {
-            setData(JSON.parse(localStorage.getItem('BhanderiMart')));
-
-            if (localStorage.getItem('loginId')) {
-                for (let i = 0; i < regData.length; i++) {
-                    if (regData[i].i_id == localStorage.getItem('loginId')) {
-                        setAddressData(regData[i].d_address)
-                        if (regData[i].d_address) {
-                            setHouseNo(regData[i].d_address.HouseNo);
-                            formik.setFieldValue('HouseNo', regData[i].d_address.HouseNo)
-                            setApartment(regData[i].d_address.Apartment);
-                            formik.setFieldValue('Apartment', regData[i].d_address.Apartment)
-                            setStreet(regData[i].d_address.Street);
-                            formik.setFieldValue('Street', regData[i].d_address.Street)
-                            setLandmark(regData[i].d_address.Landmark);
-                            formik.setFieldValue('Landmark', regData[i].d_address.Landmark)
-                            setArea(regData[i].d_address.Area);
-                            formik.setFieldValue('Area', regData[i].d_address.Area)
-                            setCity(regData[i].d_address.City);
-                            formik.setFieldValue('City', regData[i].d_address.City)
-                            setPinCode(regData[i].d_address.PinCode);
-                            formik.setFieldValue('PinCode', regData[i].d_address.PinCode)
-                        }
-                    }
-
-                }
-            }
-        }
-    }, []);
-    const handleShow = () => {
-        setShow(true);
-    };
-    const handleClose = () => {
-        setShow(false);
-    };
     const initialValues = {
         HouseNo: '',
         Apartment: '',
@@ -71,7 +22,6 @@ export default function Address() {
         Area: '',
         City: '',
         PinCode: '',
-        id: '',
     };
 
     const validationSchema = Yup.object({
@@ -89,52 +39,78 @@ export default function Address() {
         validationSchema,
         onSubmit: async (values) => {
             console.log(values);
-            values.id = Date.now()
-
-            let updatedData = [...data];
-            let addressUpdated = false;
-            let userId = JSON.parse(localStorage.getItem('BhanderiMart'))
-
-            for (let i = 0; i < updatedData.length; i++) {
-                if (userId[i].i_id == localStorage.getItem('loginId')) {
-                    addressUpdated = true;
-                    updatedData[i].d_address = values;
-                }
-            }
-            if (addressUpdated) {
-                handleUpdate(values);
-                alert('Address updated successfully!');
-            } else {
-
-                alert('No records found to update address.');
-            }
-
-            localStorage.setItem('BhanderiMart', JSON.stringify(updatedData));
-            setShow(false);
-
+            handleUpdate(values)
         },
     });
-    const handleUpdate = (obj) => {
-        const id = Number(localStorage.getItem('loginId'));
-        console.log(obj)
-        let array = JSON.parse(localStorage.getItem('BhanderiMart'))
-        let objIndex = array.findIndex((item) => item.i_id === id);
-        console.log(array, objIndex)
 
+    useEffect(() => {
+        getData()
+    }, []);
 
-        array[objIndex].HouseNo = obj.HouseNo;
-        array[objIndex].Apartment = obj.Apartment;
-        array[objIndex].Street = obj.Street;
-        array[objIndex].Landmark = obj.Landmark;
-        array[objIndex].Area = obj.Area;
-        array[objIndex].City = obj.City;
-        array[objIndex].PinCode = obj.PinCode;
+    const getData = () => {
+        const id = localStorage.getItem("loginId");
+        const db = firebaseApp.firestore();
+        db.collection("BhanderiMart").where("i_id", "==", Number(id))
+            .get()
+            .then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    formik.setFieldValue('HouseNo', doc.data().d_address.HouseNo)
+                    formik.setFieldValue('Apartment', doc.data().d_address.Apartment)
+                    formik.setFieldValue('Street', doc.data().d_address.Street)
+                    formik.setFieldValue('Landmark', doc.data().d_address.Landmark)
+                    formik.setFieldValue('Area', doc.data().d_address.Area)
+                    formik.setFieldValue('City', doc.data().d_address.City)
+                    formik.setFieldValue('PinCode', doc.data().d_address.PinCode)
+                });
+            })
+            .catch((error) => {
+                console.log("Error getting documents: ", error);
+            });
+    };
 
-        setData(array);
-        setShow(false);
-        localStorage.setItem('BhanderiMart', JSON.stringify(array));
+    // oldData show in modal----------------
+
+    // Assuming 'data' and 'setData' are defined in the component's scope
+
+    const handleShow = (user) => {
+        setShow(true);
 
     };
+    const handleClose = () => {
+        setShow(false);
+    };
+
+    // ProfileData Update-------------
+
+    const handleUpdate = async (values) => {
+
+        const id = localStorage.getItem('loginId');
+        const db = firebaseApp.firestore();
+        db.collection("BhanderiMart").where('i_id', '==', Number(id))
+            .get()
+            .then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    console.log(doc)
+                    try {
+                        db.collection('BhanderiMart').doc(doc.id).update({
+                            d_address: values
+                        });
+                        console.log('Document updated successfully');
+                        getData()
+                    } catch (error) {
+                        console.error('Error updating document: ', error);
+                    }
+                });
+            })
+            .catch((error) => {
+                console.log("Error getting documents: ", error);
+            });
+
+
+
+    };
+
+
 
     return (
         <Layout>
@@ -162,23 +138,24 @@ export default function Address() {
                                     <h2 className="display-6 fw-semibold">Residental Detail</h2>
                                     <Button className='fs-4' onClick={handleShow}><MdEdit /></Button>
                                 </div>
+
                                 <div className='row  pb-md-3 pt-5'>
                                     <h4 className='col-md-3 mb-4 fw-normal'>HouseNo:</h4>
-                                    <h4 className='col-md-3 mb-4 fw-normal'>{HouseNo}</h4>
+                                    <h4 className='col-md-3 mb-4 fw-normal'>{formik.values.HouseNo}</h4>
                                     <h4 className='col-md-3 mb-4 fw-normal'>Apartment:</h4>
-                                    <h4 className='col-md-3 mb-4 fw-normal'>{Apartment}</h4>
+                                    <h4 className='col-md-3 mb-4 fw-normal'>{formik.values.Apartment}</h4>
                                     <h4 className='col-md-3 mb-4 fw-normal pb-md-3'>Street:</h4>
-                                    <h4 className='col-md-3 mb-4 fw-normal pb-md-3'>{Street}</h4>
+                                    <h4 className='col-md-3 mb-4 fw-normal pb-md-3'>{formik.values.Street}</h4>
                                     <h4 className='col-md-3 mb-4 fw-normal'>Landmark:</h4>
-                                    <h4 className='col-md-3 mb-4 fw-normal'>{Landmark}</h4>
+                                    <h4 className='col-md-3 mb-4 fw-normal'>{formik.values.Landmark}</h4>
                                 </div>
                                 <div className='row pb-3'>
                                     <h4 className='col-md-3 mb-4 fw-normal'>Area:</h4>
-                                    <h4 className='col-md-3 mb-4 fw-normal' >{Area}</h4>
+                                    <h4 className='col-md-3 mb-4 fw-normal' >{formik.values.Area}</h4>
                                     <h4 className='col-md-3 mb-4 fw-normal'>City:</h4>
-                                    <h4 className='col-md-3 mb-4 fw-normal' >{City}</h4>
+                                    <h4 className='col-md-3 mb-4 fw-normal' >{formik.values.City}</h4>
                                     <h4 className='col-md-3 mb-4 fw-normal'>PinCode:</h4>
-                                    <h4 className='col-md-3 mb-4 fw-normal' >{PinCode}</h4>
+                                    <h4 className='col-md-3 mb-4 fw-normal' >{formik.values.PinCode}</h4>
                                 </div>
                             </Card.Body>
                         </Card>

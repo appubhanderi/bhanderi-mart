@@ -1,95 +1,126 @@
 import React from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 import { FaAddressCard } from "react-icons/fa6";
 import { IoMdMail } from "react-icons/io";
 import { FaPhoneAlt } from "react-icons/fa";
+import firebaseApp from './SetupFirebase';
 
 export default function ContactUs() {
-    const validate = (values) => {
-        const errors = {};
-        if (!values.name) {
-            errors.name = 'Required';
-        }
-        if (!values.email) {
-            errors.email = 'Required';
-        } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)) {
-            errors.email = 'Invalid email address';
-        }
-        if (!values.phone) {
-            errors.phone = 'Required';
-        } else if (!/^\d{10}$/i.test(values.phone)) {
-            errors.phone = 'Invalid phone number';
-        }
-        if (!values.message) {
-            errors.message = 'Required';
-        }
-        return errors;
-    };
 
+    const formik = useFormik({
+        initialValues: {
+            name: '',
+            email: '',
+            contact: '',
+            message: ''
+        },
+        validationSchema: Yup.object({
+            name: Yup.string().required('Required!'),
+            email: Yup.string().email('Invalid email format').required('Required!'),
+            contact: Yup.string().required('Required!'),
+            message: Yup.string().required('Required!')
+        }),
+        onSubmit: (values, { resetForm }) => {
+            values.id = Date.now(); // Assigning a unique id
+            const db = firebaseApp.firestore();
+            db.collection('Contact').add(values)
+                .then(() => {
+                    alert('Data submitted successfully!');
+                    resetForm();
+                })
+                .catch((error) => {
+                    console.error('Error adding document: ', error);
+                    alert('Error submitting data. Please try again later.');
+                });
+        },
+    });
     return (
         <Container fluid className='bg-dark-subtle'>
             <Row>
                 <Col md={6} className='ContactUs p-3'>
                     <h3>Bhanderi Mart Segments Reach Us</h3>
                     <h4>We Are Here To Help!</h4>
-                    <Formik
-                        initialValues={{ name: '', email: '', phone: '', message: '' }}
-                        validate={validate}
-                        onSubmit={(values, { setSubmitting }) => {
-                            setTimeout(() => {
-                                alert(JSON.stringify(values, null, 2));
-                                setSubmitting(false);
-                            }, 400);
-                        }}
-                    >
-                        {({ isSubmitting }) => (
-                            <Form>
-                                <div>
-                                    <label htmlFor="name">Name</label>
-                                    <Field className="form-control" type="text" name="name" />
-                                    <ErrorMessage name="name" component="div" />
-                                </div>
-                                <div>
-                                    <label htmlFor="email">Email</label>
-                                    <Field className="form-control" type="email" name="email" />
-                                    <ErrorMessage name="email" component="div" />
-                                </div>
-                                <div>
-                                    <label htmlFor="phone">Phone</label>
-                                    <Field className="form-control" type="text" name="phone" />
-                                    <ErrorMessage name="phone" component="div" />
-                                </div>
-                                <div className='mb-2'>
-                                    <label htmlFor="message">Message</label>
-                                    <Field className="form-control" as="textarea" name="message" />
-                                    <ErrorMessage name="message" component="div" />
-                                </div>
-                                <button className='btn btn-primary' type="submit" disabled={isSubmitting}>
-                                    Sent Massage
-                                </button>
-                            </Form>
-                        )}
-                    </Formik>
+                    <form className="pt-3" onSubmit={formik.handleSubmit}>
+                        <div className='pb-2'>
+                            <label>Name :</label>
+                            <input
+                                className="form-control"
+                                placeholder="Enter your name"
+                                type="text"
+                                name="name"
+                                value={formik.values.name}
+                                onChange={formik.handleChange}
+                            />
+                            {formik.errors.name && formik.touched.name && (
+                                <p className="text-danger">{formik.errors.name}</p>
+                            )}
+                        </div>
+                        <div className='pb-2'>
+                            <label>Email :</label>
+                            <input
+                                className="form-control"
+                                placeholder="Enter your email"
+                                type="email"
+                                name="email"
+                                value={formik.values.email}
+                                onChange={formik.handleChange}
+                            />
+                            {formik.errors.email && formik.touched.email && (
+                                <p className="text-danger">{formik.errors.email}</p>
+                            )}
+                        </div>
+                        <div className='pb-2'>
+                            <label>Contact :</label>
+                            <input
+                                className="form-control"
+                                placeholder="Enter your contact number"
+                                type="text"
+                                name="contact"
+                                value={formik.values.contact}
+                                onChange={formik.handleChange}
+                            />
+                            {formik.errors.contact && formik.touched.contact && (
+                                <p className="text-danger">{formik.errors.contact}</p>
+                            )}
+                        </div>
+                        <div className='pb-2'>
+                            <label>Message :</label>
+                            <textarea
+                                className="form-control"
+                                placeholder="Enter your message"
+                                name="message"
+                                value={formik.values.message}
+                                onChange={formik.handleChange}
+                            />
+                            {formik.errors.message && formik.touched.message && (
+                                <p className="text-danger">{formik.errors.message}</p>
+                            )}
+                        </div>
+                        <button className='btn btn-primary' type="submit" variant="primary">
+                            Subscribe
+                        </button>
+                    </form>
                 </Col>
                 <Col md={6}>
                     <div className="ContactUs p-3">
-                        <h2>contact us</h2>
-                        <p>The Fastest Way To Get An Answer Is To Use The Chat Support. Simply Go To BHANDERI MART'S Home Page,
-                            Click The Message Icon (Whatsapp Button) In The Bottom Right At The Corner and Then
-                            Use Live Chat Support To Report Your Query or Can Mail At
-                            <a href="mailto:itsflipkartgrocery@gmail.com" target="_blank">It's Bhanderi Mart</a></p>
-                        <p><strong>Media Enquiries:</strong> For Quotes, Interviews or Other Media Requests,
-                            Please Contact-9374815450 or else E-Mail At <a href="mailto:itsflipkartgrocery@gmail.com" target="_blank">
-                                It's Bhanderi Mart</a></p><hr />
+                        <h2>Contact Us</h2>
+                        <p>The fastest way to get an answer is to use the chat support. Simply go to Bhanderi Mart's home page,
+                            click the message icon (WhatsApp button) in the bottom right corner, and then
+                            use live chat support to report your query or email at
+                            <a href="mailto:info@bhanderimart.in" target="_blank">info@bhanderimart.in</a></p>
+                        <p><strong>Media Enquiries:</strong> For quotes, interviews, or other media requests,
+                            please contact 9374815450 or email at <a href="mailto:info@bhanderimart.in" target="_blank">
+                                info@bhanderimart.in</a></p><hr />
                         <ul className='p-0' style={{ listStyle: 'none' }}>
-                            <li><FaAddressCard className='me-2' /> Address : D-303,Start Residency,Amroli,Surat</li><hr />
+                            <li><FaAddressCard className='me-2' /> Address: D-303, Start Residency, Amroli, Surat</li><hr />
                             <li><IoMdMail className='me-3' />info@bhanderimart.in</li><hr />
-                            <li><FaPhoneAlt className='me-2' /> 9374815450,02613146851</li><hr />
+                            <li><FaPhoneAlt className='me-2' /> 9374815450, 02613146851</li><hr />
                         </ul>
                         <div className="working-time">
-                            <h5>Working hours</h5>
-                            <p><span>Monday – Saturday:</span>10AM – 10PM</p>
+                            <h5>Working Hours</h5>
+                            <p><span>Monday – Saturday:</span> 10AM – 10PM</p>
                         </div>
                     </div>
                 </Col>

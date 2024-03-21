@@ -118,7 +118,6 @@ export default function Register(props) {
                                 <p>{formik.errors.b_email}</p>
                             )}
                         </div>
-
                         <div>
                             <label>Password</label>
                             <input className="form-control"

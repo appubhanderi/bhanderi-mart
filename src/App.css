@@ -15,6 +15,12 @@
   border: 1px solid black !important;
 }
 
+span.ms-2 {
+  background-color: floralwhite;
+  padding: 0px 6px;
+  border-radius: 50%;
+}
+
 /* HomePages_________________ */
 
 .carousel-caption {
@@ -99,6 +105,10 @@
 }
 
 
+/* Add to Cart_________*/
+
+
+
 
 
 
@@ -115,6 +125,8 @@
   }
 
 }
+
+
 
 
 @media screen and (max-width: 480px) {

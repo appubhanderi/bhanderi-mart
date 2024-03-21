@@ -16,15 +16,14 @@ export default function PersonalDetails() {
 
 
     const [show, setShow] = useState(false);
-    const [, setData] = useState();
-    const [userData, setUserData] = useState([]);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [imageSrc, setImageSrc] = useState(
         './Image/images.png'
     );
 
     const [img, setImg] = useState('');
-    const [Name, setName] = useState('');
-    const [Email, setEmail] = useState('');
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
     const [contact, setContact] = useState('');
 
 
@@ -46,69 +45,54 @@ export default function PersonalDetails() {
         onSubmit: (values) => {
             // Implement your submission logic here
             console.log(values);
+            values.img = img
             handleUpdate(values)
         },
     });
 
-
     // ProfileData show in Table------------
 
-
     useEffect(() => {
-        // const id = Number(localStorage.getItem('loginId'));
-        // const data = JSON.parse(localStorage.getItem('BhanderiMart')) || [];
-
-        // if (id && data.length > 0) {
-        //     const user = data.find((userData) => userData.i_id === id);
-        //     if (user) {
-        //         setImageSrc(user.Photo || ProfilePic);
-        //         setName(user.a_Name);
-        //         setEmail(user.b_email);
-        //         setContact(user.contact);
-        //     }
-        // }
         getData()
     }, []);
-    const getData = async () => {
+
+    const getData = () => {
+        const id = localStorage.getItem("loginId");
+        let userData = [];
         const db = firebaseApp.firestore();
-        const loginId = localStorage.getItem('loginId');
-        if (loginId) {
-            try {
-                const querySnapshot = db.collection("Mycart")
-                    .get();
-                console.log(userData)
-                let userData = [];
-                querySnapshot.forEach(doc => {
-                    userData.push({ id: doc.id, ...doc.data() });
+        db.collection("BhanderiMart")
+            .get()
+            .then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    userData.push(doc.data());
                 });
-                if (userData.length === 0) {
-                    const data = JSON.parse(localStorage.getItem('Mycart')) || [];
-                    const user = data.find(userData => userData.i_id === loginId);
+                if (id && userData.length > 0) {
+                    const user = userData.find((userData) => userData.i_id == id);
                     if (user) {
+                        setIsLoggedIn(true);
                         setImageSrc(user.Photo || ProfilePic);
                         setName(user.a_Name);
                         setEmail(user.b_email);
                         setContact(user.contact);
                     }
-                }
-                setUserData(userData);
-            } catch (error) {
-                console.log("Error getting documents: ", error);
-            }
-        }
-    };
+                } else {
+                    setIsLoggedIn(false);
 
+                }
+            })
+            .catch((error) => {
+                console.log("Error getting documents: ", error);
+            });
+    };
 
     // oldData show in modal----------------
 
-
     // Assuming 'data' and 'setData' are defined in the component's scope
-
 
     const handleShow = (user) => {
         setShow(true);
-        formik.setFieldValue('Name', Name)
-        formik.setFieldValue('Email', Email)
+        formik.setFieldValue('Name', name)
+        formik.setFieldValue('Email', email)
         formik.setFieldValue('tel', contact)
     };
     const handleClose = () => {
@@ -119,24 +103,43 @@ export default function PersonalDetails() {
     // ProfileData Update-------------
 
     const handleUpdate = (obj) => {
-        const id = Number(localStorage.getItem('loginId'));
-        console.log(obj)
-        let array = JSON.parse(localStorage.getItem('BhanderiMart'))
-        let objIndex = array.findIndex((item) => item.i_id === id);
-        console.log(array, objIndex)
+        const id = localStorage.getItem('loginId');
+        const db = firebaseApp.firestore();
+        console.log(obj, id)
+
+        db.collection("BhanderiMart").where('i_id', '==', Number(id))
+            .get()
+            .then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    console.log(doc)
+                    try {
 
 
-        array[objIndex].Photo = img;
-        array[objIndex].a_Name = obj.Name;
-        array[objIndex].b_email = obj.Email;
-        array[objIndex].contact = obj.tel;
+                        db.collection('BhanderiMart').doc(doc.id).update({
+                            Photo: obj.img,
+                            a_Name: obj.Name,
+                            b_email: obj.Email,
+                            contact: obj.tel
+                        });
 
-        setImageSrc(img || ProfilePic);
-        setData(array);
-        setShow(false);
-        localStorage.setItem('BhanderiMart', JSON.stringify(array));
+                        setImageSrc(obj.img || ProfilePic); // Assuming 'img' is defined
+                        setShow(false);
+
+                        console.log('Document updated successfully');
+                        getData()
+                    } catch (error) {
+                        console.error('Error updating document: ', error);
+                    }
+                });
+
+            })
+            .catch((error) => {
+                console.log("Error getting documents: ", error);
+            });
+
 
     };
+
 
 
     // Profile pic show ----------
@@ -180,27 +183,29 @@ export default function PersonalDetails() {
                 <Row className='justify-content-center'>
                     <Col>
                         <Card className='Personal_Detail p-0'>
-                            <Card.Body>
-                                <div className='d-flex justify-content-between'>
-                                    <h2 className="display-6 fw-semibold">Personal Detail</h2>
-                                    <Button className='fs-4' onClick={handleShow}><MdEdit /></Button>
-                                </div>
-                                <div className='text-center ProfilePic pt-5 pb-5'>
-                                    <img src={imageSrc} style={{ width: 120, height: 120 }} alt='' className='image-fluid' />
-                                </div>
-                                <div>
+                            {isLoggedIn && (
+                                <Card.Body>
+                                    <div className='d-flex justify-content-between'>
+                                        <h2 className="display-6 fw-semibold">Personal Detail</h2>
+                                        <Button className='fs-4' onClick={handleShow}><MdEdit /></Button>
+                                    </div>
+                                    <div className='text-center ProfilePic pt-5 pb-5'>
+                                        <img src={imageSrc} style={{ width: 120, height: 120 }} alt='' className='image-fluid' />
+                                    </div>
                                     <div>
-                                        <div className='row  pb-md-3 '>
-                                            <h4 className='col-md-2 mb-4 fs-4 fw-normal'>Name:</h4>
-                                            <h4 className='col-md-4 mb-4 fs-4 fw-normal'>{Name}</h4>
-                                            <h4 className='col-md-2 mb-4 fs-4 fw-normal'>Email:</h4>
-                                            <h4 className='col-md-4 mb-4 fs-4 fw-normal'>{Email}</h4>
-                                            <h4 className='col-md-2 mb-4 fs-4 fw-normal'>Mobile No:</h4>
-                                            <h4 className='col-md-4 mb-4 fs-4 fw-normal'>{contact}</h4>
+                                        <div>
+                                            <div className='row  pb-md-3 '>
+                                                <h4 className='col-md-2 mb-4 fs-4 fw-normal'>Name:</h4>
+                                                <h4 className='col-md-4 mb-4 fs-4 fw-normal'>{name}</h4>
+                                                <h4 className='col-md-2 mb-4 fs-4 fw-normal'>Email:</h4>
+                                                <h4 className='col-md-4 mb-4 fs-4 fw-normal'>{email}</h4>
+                                                <h4 className='col-md-2 mb-4 fs-4 fw-normal'>Mobile No:</h4>
+                                                <h4 className='col-md-4 mb-4 fs-4 fw-normal'>{contact}</h4>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </Card.Body>
+                                </Card.Body>
+                            )}
                         </Card>
                     </Col>
                 </Row >
@@ -225,7 +230,7 @@ export default function PersonalDetails() {
                                         <input
                                             className='form-control'
                                             type="text"
-                                            name="name"
+                                            name="Name"
                                             onChange={formik.handleChange}
                                             value={formik.values.Name}
                                             required />
@@ -237,7 +242,7 @@ export default function PersonalDetails() {
                                         <input
                                             className='form-control'
                                             type="text"
-                                            name="email"
+                                            name="Email"
                                             onChange={formik.handleChange}
                                             value={formik.values.Email}
                                             required />

@@ -11,6 +11,7 @@ import firebaseApp from './SetupFirebase';
 export default function MyOrder() {
     const [data, setData] = useState([]);
 
+
     useEffect(() => {
         getData()
     }, []);
@@ -19,18 +20,22 @@ export default function MyOrder() {
     const getData = () => {
         let newData = []
         const db = firebaseApp.firestore();
-        db.collection("MyOder")
-            .get()
-            .then((querySnapshot) => {
-                querySnapshot.forEach((doc) => {
-                    // doc.data() is never undefined for query doc snapshots
-                    newData.push(doc.data())
-                    setData(newData)
+        const loginId = localStorage.getItem('loginId');
+        if (loginId) {
+            db.collection("MyOrder")
+                .where("loginid", '==', Number(loginId))
+                .get()
+                .then((querySnapshot) => {
+                    querySnapshot.forEach((doc) => {
+                        // doc.data() is never undefined for query doc snapshots
+                        newData.push(doc.data())
+                        setData(newData)
+                    });
+                })
+                .catch((error) => {
+                    console.log("Error getting documents: ", error);
                 });
-            })
-            .catch((error) => {
-                console.log("Error getting documents: ", error);
-            });
+        }
     }
 
 
@@ -47,8 +52,8 @@ export default function MyOrder() {
 
     const columns = [
         {
-            name: "img",
-            label: "Image",
+            name: "productImage",
+            label: "Image-",
             options: {
                 filter: true,
                 sort: false,
@@ -58,8 +63,8 @@ export default function MyOrder() {
             }
         },
         {
-            name: "title",
-            label: "Title",
+            name: "productName",
+            label: "Title-",
             options: {
                 filter: true,
                 sort: true,
@@ -67,7 +72,7 @@ export default function MyOrder() {
         },
         {
             name: "price",
-            label: "Price",
+            label: "Price-",
             options: {
                 filter: true,
                 sort: false,

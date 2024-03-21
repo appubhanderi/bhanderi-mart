@@ -138,13 +138,13 @@ export default function ProductGroscry() {
 
         const newItem = {
             loginid: loginId,
-            cartId: Date.now(),
             id: product.id,
+            cartId: Date.now(),
             productImage: product.productImage || [],
             productName: product.productName || "",
             price: product.price || 0,
+            totalItemPrice: product.price || 0,
             qty: product.qty || 1,
-            timestamp: Date.now(),
         };
 
         // Check if the item already exists in the cart

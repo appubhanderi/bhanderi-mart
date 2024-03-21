@@ -6,17 +6,20 @@ import ContactWhatsapp from './ContactWhatsapp';
 import firebaseApp from './SetupFirebase';
 import CartControl from './CartControl';
 import emptyimg from '../image/cart.empty.png';
+import { useNavigate } from 'react-router-dom';
 
-export default function AddToCart() {
+export default function AddToCart(props) {
     const [data, setData] = useState([]);
     const [cartTotal, setCartTotal] = useState(0);
     const [loading, setLoading] = useState(false);
+    const Chackout = useNavigate()
 
     useEffect(() => {
         getData();
     }, []);
 
     const getData = () => {
+        let total = 0
         setLoading(true);
         const db = firebaseApp.firestore();
         const loginId = localStorage.getItem('loginId');
@@ -28,9 +31,10 @@ export default function AddToCart() {
                 .then(querySnapshot => {
                     querySnapshot.forEach(doc => {
                         newData.push({ id: doc.id, ...doc.data() }); // Include document id
+                        total = Number(total) + Number(doc.data().totalItemPrice)
+                        setCartTotal(total)
                     });
                     setData(newData);
-                    calculateCartTotal();
                     setLoading(false);
                 })
                 .catch(error => {
@@ -39,14 +43,12 @@ export default function AddToCart() {
                 });
         }
     };
+    const Checkout = () => {
+        Chackout("/checkOut")
 
-    const calculateCartTotal = () => {
-        let total = 0;
-        data.forEach(item => {
-            total += item.price * item.quantity;
-        });
-        setCartTotal(total);
-    };
+
+    }
+
 
     const emptyCart = () => {
         setLoading(true);
@@ -91,27 +93,36 @@ export default function AddToCart() {
                             )}
                         </h1>
                         <Row className="justify-content-center">
-                            <Table responsive="sm" striped bordered hover className="mb-5" style={{ overflowX: 'hidden' }}>
+                            <Table responsive="sm" striped bordered hover className="mb-5 table" style={{ overflowX: 'hidden' }}>
+                                <thead>
+                                    <tr>
+                                        <th>Image</th>
+                                        <th>Title</th>
+                                        <th>Price</th>
+                                        <th>Qty</th>
+                                        <th>Remove</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     {data.map((item, index) => (
                                         <CartControl key={item.id} item={item} getData={getData} />
                                     ))}
                                 </tbody>
                             </Table>
-                            {!data.length === 0 && (
-                                <Row style={{ position: 'fixed', bottom: 0 }} className="justify-content-center w-100 bg-info">
-                                    <Col className="py-2 ms-5">
-                                        <h4>Total Price: Rs. {cartTotal}</h4>
-                                    </Col>
-                                    <Col className="p-0" md={4}>
-                                        <Button variant="danger" onClick={emptyCart} className="m-2">Empty Cart</Button>
-                                        <Button variant="success" className="m-2">
-                                            <BsCartCheck size="1.7rem" />
-                                            Checkout
-                                        </Button>
-                                    </Col>
-                                </Row>
-                            )}
+
+                            <Row style={{ position: 'fixed', bottom: 0 }} className="justify-content-center w-100 bg-primary">
+                                <Col className="py-2  text-center">
+                                    <h4>Total Price: Rs. {cartTotal}</h4>
+                                </Col>
+                                <Col className="p-0 text-center" md={4}>
+                                    <Button variant="danger" onClick={emptyCart} className="m-2">Empty Cart</Button>
+                                    <Button variant="success" className="m-2" onClick={Checkout}>
+                                        <BsCartCheck size="1.7rem" />
+                                        Checkout
+                                    </Button>
+                                </Col>
+                            </Row>
+
                         </Row>
                     </>
                 )}

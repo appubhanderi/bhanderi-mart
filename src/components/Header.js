@@ -8,12 +8,16 @@ import Login from './Login';
 import firebaseApp from './SetupFirebase';
 
 export default function Header() {
-    const Logout = useNavigate();
+    const navigate = useNavigate();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [userName, setUserName] = useState('');
+    const [data, setData] = useState([]);
+    const [itemTotal, setItemTotal] = useState(0);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         showName();
+        itemCount();
     }, []);
 
     const showName = () => {
@@ -27,7 +31,7 @@ export default function Header() {
                     userData.push(doc.data());
                 });
                 if (id && userData.length > 0) {
-                    const user = userData.find((userData) => userData.i_id == id);
+                    const user = userData.find((userData) => userData.i_id === parseInt(id));
                     if (user) {
                         setIsLoggedIn(true);
                         setUserName(user.a_Name);
@@ -45,7 +49,33 @@ export default function Header() {
     const logout = () => {
         alert('Logout successfully!');
         localStorage.removeItem("loginId");
-        Logout('/');
+        navigate('/');
+    };
+
+    const itemCount = () => {
+        let total = 0;
+        setLoading(true);
+        const db = firebaseApp.firestore();
+        const loginId = localStorage.getItem('loginId');
+        let newData = [];
+        if (loginId) {
+            db.collection("Mycart")
+                .where("loginid", '==', Number(loginId))
+                .get()
+                .then(querySnapshot => {
+                    querySnapshot.forEach(doc => {
+                        newData.push({ id: doc.id, ...doc.data() }); // Include document id
+                        total += Number(doc.data().qty);
+                    });
+                    setItemTotal(total);
+                    setData(newData);
+                    setLoading(false);
+                })
+                .catch(error => {
+                    console.log("Error getting documents: ", error);
+                    setLoading(false);
+                });
+        }
     };
 
 
@@ -60,7 +90,7 @@ export default function Header() {
                             <Link style={{ textDecoration: "none" }} to="/" active className='fs-6'><MdPhoneInTalk className='fs-3 me-2' />9374815450</Link>
                             <Link style={{ textDecoration: "none" }} to="/vegetable" active>Products</Link>
                             <Link style={{ textDecoration: "none" }} to="/contact" active>Contact</Link>
-                            <Link style={{ textDecoration: "none" }} to="/addToCart" active ><FaShoppingCart className='fs-4' /></Link>
+                            <Link style={{ textDecoration: "none" }} to="/addToCart" active ><FaShoppingCart className='fs-4' /><span className='ms-2'>{itemTotal}</span></Link>
                         </Nav>
                         {!isLoggedIn && <Login />}
                         {isLoggedIn && (
